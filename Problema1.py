@@ -1,6 +1,18 @@
+import os
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
+
+
+# ------------------------------------------------------------------------------
+# --- Carpeta de resultados ----------------------------------------------------
+# ------------------------------------------------------------------------------
+
+carpeta_resultados = 'resultados/problema1'
+os.makedirs(
+    carpeta_resultados,
+    exist_ok=True
+)
 
 
 # ------------------------------------------------------------------------------
@@ -25,6 +37,7 @@ print("Tipo de dato:", img.dtype)
 print("Dimensiones:", img.shape)
 print("Valor mínimo:", img.min())
 print("Valor máximo:", img.max())
+print("Cantidad de niveles de intensidad:", len(np.unique(img)))
 
 
 # Muestro imagen original
@@ -35,6 +48,14 @@ plt.title('Imagen Original')
 plt.colorbar()
 plt.xticks([])
 plt.yticks([])
+plt.savefig(
+    os.path.join(
+        carpeta_resultados,
+        '01_imagen_original.png'
+    ),
+    dpi=150,
+    bbox_inches='tight'
+)
 plt.show(block=False)
 
 
@@ -57,6 +78,14 @@ plt.plot(bins[:-1], hist)
 plt.title('Histograma')
 
 plt.tight_layout()
+plt.savefig(
+    os.path.join(
+        carpeta_resultados,
+        '02_histograma_original.png'
+    ),
+    dpi=150,
+    bbox_inches='tight'
+)
 plt.show(block=False)
 
 
@@ -89,6 +118,14 @@ plt.hist(img_heq.flatten(), 256, [0, 256])
 plt.title('Histograma Ecualizado')
 
 plt.tight_layout()
+plt.savefig(
+    os.path.join(
+        carpeta_resultados,
+        '03_ecualizacion_global.png'
+    ),
+    dpi=150,
+    bbox_inches='tight'
+)
 plt.show(block=False)
 
 
@@ -99,8 +136,8 @@ plt.show(block=False)
 def ecualizacion_local(img, M, N):
 
     # La ventana debe tener un pixel central
-    if M % 2 == 0 or N % 2 == 0:
-        print("El tamaño de la ventana debe ser impar")
+    if M <= 0 or N <= 0 or M % 2 == 0 or N % 2 == 0:
+        print("El tamaño de la ventana debe ser positivo e impar")
         return None
 
     # Cantidad de pixels a agregar alrededor de la imagen
@@ -201,6 +238,14 @@ plt.xticks([])
 plt.yticks([])
 
 plt.tight_layout()
+plt.savefig(
+    os.path.join(
+        carpeta_resultados,
+        '04_comparacion_ventanas_locales.png'
+    ),
+    dpi=150,
+    bbox_inches='tight'
+)
 plt.show(block=False)
 
 
@@ -232,6 +277,14 @@ plt.xticks([])
 plt.yticks([])
 
 plt.tight_layout()
+plt.savefig(
+    os.path.join(
+        carpeta_resultados,
+        '05_comparacion_global_local.png'
+    ),
+    dpi=150,
+    bbox_inches='tight'
+)
 plt.show()
 
 
@@ -240,21 +293,67 @@ plt.show()
 # ------------------------------------------------------------------------------
 
 cv2.imwrite(
-    'resultado_ecualizacion_local_7x7.png',
+    os.path.join(
+        carpeta_resultados,
+        'resultado_ecualizacion_local_7x7.png'
+    ),
     img_local_7
 )
 
 cv2.imwrite(
-    'resultado_ecualizacion_local_15x15.png',
+    os.path.join(
+        carpeta_resultados,
+        'resultado_ecualizacion_local_15x15.png'
+    ),
     img_local_15
 )
 
 cv2.imwrite(
-    'resultado_ecualizacion_local_31x31.png',
+    os.path.join(
+        carpeta_resultados,
+        'resultado_ecualizacion_local_31x31.png'
+    ),
     img_local_31
 )
 
 cv2.imwrite(
-    'resultado_ecualizacion_local_63x63.png',
+    os.path.join(
+        carpeta_resultados,
+        'resultado_ecualizacion_local_63x63.png'
+    ),
     img_local_63
 )
+
+print("Resultados guardados en:", carpeta_resultados)
+
+# ------------------------------------------------------------------------------
+# --- Conclusiones --------------------------------------------------------------
+# ------------------------------------------------------------------------------
+
+# La ecualización local permite revelar detalles que no se distinguen claramente
+# con la ecualización global porque considera el entorno de cada pixel.
+#
+# Detalles observados en la imagen:
+# - un cuadrado en la zona superior izquierda;
+# - una línea diagonal en la zona superior derecha;
+# - la letra "a" en la zona central;
+# - líneas horizontales en la zona inferior izquierda;
+# - un círculo en la zona inferior derecha.
+#
+# Influencia del tamaño de ventana:
+# - las ventanas pequeñas producen una transformación más local y permiten
+#   resaltar con mayor intensidad los detalles pequeños;
+# - al mismo tiempo, las ventanas pequeñas también amplifican pequeñas
+#   variaciones de intensidad del fondo, por lo que puede aparecer un aspecto
+#   más ruidoso o salpicado;
+# - al aumentar el tamaño de la ventana, ese efecto local disminuye y la
+#   transformación se aproxima progresivamente a un comportamiento más global;
+# - alrededor de regiones con cambios bruscos de intensidad pueden aparecer
+#   halos, ya que la ventana incluye simultáneamente zonas claras y oscuras;
+# - al aumentar el tamaño de la ventana, esos halos pueden hacerse más anchos
+#   porque se incorpora una región espacial mayor en el cálculo del histograma
+#   local.
+#
+# Por lo tanto, existe un compromiso entre resaltar detalles muy locales y evitar
+# amplificar variaciones pequeñas del fondo o generar artefactos alrededor de
+# transiciones intensas.
